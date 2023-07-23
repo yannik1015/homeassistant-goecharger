@@ -1,3 +1,4 @@
+debugpy:
 default_config:
 logger:
   default: info

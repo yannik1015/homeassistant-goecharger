@@ -11,8 +11,9 @@ from homeassistant import core
 from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN, CONF_SERIAL, CONF_CHARGERS, CONF_CORRECTION_FACTOR, CONF_NAME, CHARGER_API
-from goecharger import GoeCharger
+from .const import DOMAIN, CONF_SERIAL, CONF_CHARGERS, CONF_CORRECTION_FACTOR, CONF_NAME, CONF_API_LEVEL, CHARGER_API
+from goecharger import GoeCharger as GoeChargerV1
+from goecharger_api_lite import GoeCharger as GoeChargerV2
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ async def async_setup_entry(hass, config):
     _LOGGER.debug(repr(config.data))
 
     name = config.data[CONF_NAME]
-    charger = GoeCharger(config.data[CONF_HOST])
+    charger = GoeChargerV1(config.data[CONF_HOST])
     hass.data[DOMAIN]["api"][name] = charger
 
     await hass.data[DOMAIN]["coordinator"].async_refresh()
@@ -77,6 +78,8 @@ async def async_setup_entry(hass, config):
 
 async def async_unload_entry(hass, entry):
     _LOGGER.debug(f"Unloading charger '{entry.data[CONF_NAME]}")
+    # TODO: Remove
+    _LOGGER.debug(f"API Level - {entry.data.get(CONF_API_LEVEL)}")
     hass.data[DOMAIN]["api"].pop(entry.data[CONF_NAME])
     return True
 
@@ -86,7 +89,7 @@ class ChargerStateFetcher:
         self._hass = hass
 
     async def fetch_states(self):
-        _LOGGER.debug('Updating status...')
+        _LOGGER.debug(f'Updating status... - API Level: {self._hass.data}')
         goeChargers = self._hass.data[DOMAIN]["api"]
         data = self.coordinator.data if self.coordinator.data else {}
         for chargerName in goeChargers.keys():
@@ -123,7 +126,7 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
 
         if host:
             if not serial:
-                goeCharger = GoeCharger(host)
+                goeCharger = GoeChargerV1(host)
                 status = goeCharger.requestStatus()
                 serial = status["serial_number"]
             chargers.append([{CONF_NAME: serial, CONF_HOST: host, CONF_CORRECTION_FACTOR: correctionFactor}])
@@ -134,7 +137,7 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
             host = charger[0][CONF_HOST]
             _LOGGER.debug(f"charger: '{chargerName}' host: '{host}' ")
 
-            goeCharger = GoeCharger(host)
+            goeCharger = GoeChargerV1(host)
             chargerApi[chargerName] = goeCharger
 
     hass.data[DOMAIN]["api"] = chargerApi
@@ -175,6 +178,7 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
         else:
             maxCurrent = maxCurrentInput
 
+        # TODO: Max current may get lower and less high incase only 1 phase is used
         if maxCurrent < 6:
             maxCurrent = 6
         if maxCurrent > 32:
@@ -261,11 +265,11 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
         else:
             cableLockMode = cableLockModeInput
 
-        cableLockModeEnum = GoeCharger.CableLockMode.UNLOCKCARFIRST
+        cableLockModeEnum = GoeChargerV1.CableLockMode.UNLOCKCARFIRST
         if cableLockModeInput == 1:
-            cableLockModeEnum = GoeCharger.CableLockMode.AUTOMATIC
+            cableLockModeEnum = GoeChargerV1.CableLockMode.AUTOMATIC
         if cableLockMode >= 2:
-            cableLockModeEnum = GoeCharger.CableLockMode.LOCKED
+            cableLockModeEnum = GoeChargerV1.CableLockMode.LOCKED
 
         if len(chargerNameInput) > 0:
             _LOGGER.debug(f"set set_cable_lock_mode for charger '{chargerNameInput}' to {cableLockModeEnum}")

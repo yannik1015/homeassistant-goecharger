@@ -5,7 +5,7 @@ from homeassistant.const import CONF_HOST
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant import core, config_entries
 
-from goecharger import GoeCharger
+from goecharger import GoeCharger as GoeChargerV1
 
 from .const import DOMAIN, CONF_CHARGERS, CONF_NAME, CHARGER_API
 
@@ -23,7 +23,7 @@ async def async_setup_entry(
 
     chargerName = config[CONF_NAME]
     host = config[CONF_HOST]
-    chargerApi = GoeCharger(host)
+    chargerApi = GoeChargerV1(host)
 
     entities = []
 
