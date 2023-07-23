@@ -4,9 +4,10 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.core import callback
+from homeassistant.helpers import selector
 
 from homeassistant.const import CONF_HOST, CONF_SCAN_INTERVAL
-from .const import DOMAIN, CONF_NAME, CONF_CORRECTION_FACTOR
+from .const import DOMAIN, CONF_NAME, CONF_CORRECTION_FACTOR, CONF_API_LEVEL
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -39,6 +40,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_CORRECTION_FACTOR, default="1.0"
                     ): str,
+                    vol.Required(CONF_API_LEVEL, default="1"): selector.selector(
+                        {"select": {"mode": "dropdown", "options": ["1", "2"]}}
+                    ),
                 }
             ),
         )
