@@ -84,6 +84,23 @@ async def async_unload_entry(hass, entry):
     return True
 
 
+async def async_migrate_entry(hass, config_entry):
+    """Migrate old entry"""
+    _LOGGER.debug("Migrating from version %s", config_entry.version)
+
+    if config_entry.version == 1:
+        new = {**config_entry.data}
+
+        new[CONF_API_LEVEL] = 1
+        config_entry.version = 2
+
+        hass.config_entries.async_update_entry(config_entry, data=new)
+
+    _LOGGER.info("Migration to version %s successful", config_entry.version)
+
+    return True
+
+
 class ChargerStateFetcher:
     def __init__(self, hass):
         self._hass = hass

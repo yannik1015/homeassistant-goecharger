@@ -21,7 +21,7 @@ MIN_UPDATE_INTERVAL = timedelta(seconds=10)
 
 class ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
     """Config flow for go-eCharger setup."""
-    VERSION = 1
+    VERSION = 2
 
     @staticmethod
     @callback
