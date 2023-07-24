@@ -10,6 +10,7 @@ from homeassistant.core import valid_entity_id
 from homeassistant import core
 from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import DOMAIN, CONF_SERIAL, CONF_CHARGERS, CONF_CORRECTION_FACTOR, CONF_NAME, CONF_API_LEVEL, CHARGER_API
 from .charger import Charger
@@ -67,6 +68,14 @@ async def async_setup_entry(hass, config):
     hass.data[DOMAIN]["api"][name] = goeCharger
 
     await hass.data[DOMAIN]["coordinator"].async_refresh()
+    # Find proper way to handle this and decide if this is even needed
+    # try:
+    #     await hass.data[DOMAIN]["coordinator"].async_refresh()
+    # except: 
+    #     raise ConfigEntryNotReady(f"Timeout while connecting to {config.data[CONF_HOST]}")
+
+
+    # await hass.data[DOMAIN]["coordinator"].async_config_entry_first_refresh()
     # TODO: Maybe return an ConfigEntryNotReady Exception when the charger isn't online => Setup failed (https://developers.home-assistant.io/docs/integration_setup_failures)
 
     hass.async_create_task(

@@ -21,52 +21,52 @@ class Charger:
 
     def request_status(self):
         if self.api_level == "1":
-            return GoeChargerV1.requestStatus()
+            return self.goecharger.requestStatus()
         elif self.api_level == "2":
             # TODO: Check the return format with v1
-            return GoeChargerV2.get_status(status_type=GoeChargerV2.STATUS_FULL)
+            return self.goecharger.get_status(status_type=GoeChargerV2.STATUS_FULL)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
     def set_tmp_max_current(self, maxCurrent):
         if self.api_level == "1":
-            return GoeChargerV1.setTmpMaxCurrent(maxCurrent)
+            return self.goecharger.setTmpMaxCurrent(maxCurrent)
         elif self.api_level == "2":
             # TODO: Check
-            return GoeChargerV2.set_ampere(maxCurrent)
+            return self.goecharger.set_ampere(maxCurrent)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
     def set_absolute_max_current(self, absoluteMaxCurrent):
         if self.api_level == "1":
-            return GoeChargerV1.setAbsoluteMaxCurrent(absoluteMaxCurrent)
+            return self.goecharger.setAbsoluteMaxCurrent(absoluteMaxCurrent)
         elif self.api_level == "2":
             # TODO: Implement in charging APIv2 (key ama)
-            # return GoeChargerV2.set_absolute_max_current(absoluteMaxCurrent)
-            return GoeChargerV2.set_key("ama", absoluteMaxCurrent)
+            # return self.goecharger.set_absolute_max_current(absoluteMaxCurrent)
+            return self.goecharger.set_key("ama", absoluteMaxCurrent)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
     def set_cable_lock_mode(self, cableLockModeEnum):
         if self.api_level == "1":
-           return GoeChargerV1.setCableLockMode(cableLockModeEnum)
+           return self.goecharger.setCableLockMode(cableLockModeEnum)
         elif self.api_level == "2":
             # TODO: Implement in charging APIv2 (key ust)
-            # return GoeChargerV2.set_cable_lock_mode(cableLockModeEnum)
-            return GoeChargerV2.set_key("ust", cableLockModeEnum)
+            # return self.goecharger.set_cable_lock_mode(cableLockModeEnum)
+            return self.goecharger.set_key("ust", cableLockModeEnum)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
     def set_charge_limit(self, chargeLimit):
         if self.api_level == "1":
-            return GoeChargerV1.setChargeLimit(chargeLimit)
+            return self.goecharger.setChargeLimit(chargeLimit)
         elif self.api_level == "2":
             # TODO: Implement in charging APIv2 (key dwo)
             
             # Conversion from kWh to Wh
             chargeLimit = chargeLimit * 1000
-            # return GoeChargerV2.set_charge_limit(chargeLimit)
-            return GoeChargerV2.set_key("dwo", chargeLimit)
+            # return self.goecharger.set_charge_limit(chargeLimit)
+            return self.goecharger.set_key("dwo", chargeLimit)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
@@ -75,17 +75,17 @@ class Charger:
             raise InvalidAPILevelError("Invalid API level. Only APIv2 can switch the phase mode.")
         
         # TODO: Check
-        return GoeChargerV2.set_phase_mode(phaseModeEnum)
+        return self.goecharger.set_phase_mode(phaseModeEnum)
 
     def set_allow_charging(self, allowCharging: bool):
         if self.api_level == "1":
-            return GoeChargerV1.setAllowCharging(allowCharging)
+            return self.goecharger.setAllowCharging(allowCharging)
         elif self.api_level == "2":
             # TODO: Check
             if allowCharging:
-                return GoeChargerV2.set_charging_mode(GoeChargerV2.SettableValueEnum.ChargingMode.on)
+                return self.goecharger.set_charging_mode(GoeChargerV2.SettableValueEnum.ChargingMode.on)
             else:
-                return GoeChargerV2.set_charging_mode(GoeChargerV2.SettableValueEnum.ChargingMode.off)
+                return self.goecharger.set_charging_mode(GoeChargerV2.SettableValueEnum.ChargingMode.off)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
