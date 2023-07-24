@@ -40,7 +40,7 @@ set_phases:
     charger_name:
       description: name of the charger to update (if not specified all chargers will be changed)
       example: "charger1"
-    phases:
+    phase_mode:
       description: The number of phases used for charging. Can be 1 or 3.
       default: "3"
       required: true
@@ -48,6 +48,6 @@ set_phases:
         select:
           options:
             - "1"
-            - "2"
+            - "3"
 
     

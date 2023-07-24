@@ -57,7 +57,8 @@ _sensorUnits = {
     'lf_l2': {'unit': PERCENT, 'name': 'Power factor L2'},
     'lf_l3': {'unit': PERCENT, 'name': 'Power factor L3'},
     'lf_n': {'unit': PERCENT, 'name': 'Loadfactor N'},
-    'car_status': {'unit': '', 'name': 'Status'}
+    'car_status': {'unit': '', 'name': 'Status'},
+    'phase_mode': {'unit': '', 'name': 'Phase mode'}
 }
 
 _sensorStateClass = {
@@ -129,7 +130,9 @@ _sensorsv1 = [
 ]
 
 # TODO: Add Sensor for APIv2
-_sensorsv2 = []
+_sensorsv2 = [
+    'phase_mode',
+]
 
 
 def _create_sensors_for_charger(chargerName, hass, correctionFactor, api_level):

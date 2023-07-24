@@ -98,12 +98,12 @@ class GoeChargerSwitch(CoordinatorEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        await self.hass.async_add_executor_job(self._goeCharger.setAllowCharging, True)
+        await self.hass.async_add_executor_job(self._goeCharger.set_allow_charging, True)
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        await self.hass.async_add_executor_job(self._goeCharger.setAllowCharging, False)
+        await self.hass.async_add_executor_job(self._goeCharger.set_allow_charging, False)
         await self.coordinator.async_request_refresh()
 
     @property

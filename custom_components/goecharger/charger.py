@@ -19,7 +19,7 @@ class Charger:
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
 
-    def requestStatus(self):
+    def request_status(self):
         if self.api_level == "1":
             return GoeChargerV1.requestStatus()
         elif self.api_level == "2":
@@ -28,7 +28,7 @@ class Charger:
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
-    def setTmpMaxCurrent(self, maxCurrent):
+    def set_tmp_max_current(self, maxCurrent):
         if self.api_level == "1":
             return GoeChargerV1.setTmpMaxCurrent(maxCurrent)
         elif self.api_level == "2":
@@ -37,7 +37,7 @@ class Charger:
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
-    def setAbsoluteMaxCurrent(self, absoluteMaxCurrent):
+    def set_absolute_max_current(self, absoluteMaxCurrent):
         if self.api_level == "1":
             return GoeChargerV1.setAbsoluteMaxCurrent(absoluteMaxCurrent)
         elif self.api_level == "2":
@@ -47,7 +47,7 @@ class Charger:
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
-    def setCableLockMode(self, cableLockModeEnum):
+    def set_cable_lock_mode(self, cableLockModeEnum):
         if self.api_level == "1":
            return GoeChargerV1.setCableLockMode(cableLockModeEnum)
         elif self.api_level == "2":
@@ -57,7 +57,7 @@ class Charger:
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
-    def setChargeLimit(self, chargeLimit):
+    def set_charge_limit(self, chargeLimit):
         if self.api_level == "1":
             return GoeChargerV1.setChargeLimit(chargeLimit)
         elif self.api_level == "2":
@@ -71,15 +71,14 @@ class Charger:
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
-    def async_handle_set_phase_mode(self, phaseModeEnum):
+    def set_phase_mode(self, phaseModeEnum):
         if self.api_level != "1":
             raise InvalidAPILevelError("Invalid API level. Only APIv2 can switch the phase mode.")
         
         # TODO: Check
         return GoeChargerV2.set_phase_mode(phaseModeEnum)
 
-    
-    def setAllowCharging(self, allowCharging: bool):
+    def set_allow_charging(self, allowCharging: bool):
         if self.api_level == "1":
             return GoeChargerV1.setAllowCharging(allowCharging)
         elif self.api_level == "2":
