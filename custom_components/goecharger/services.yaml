@@ -34,3 +34,20 @@ set_charge_limit:
     charge_limit:
       description: charge limit in kWh example '2.5'
       example: "2.5"
+set_phases:
+  description: Sets the phases to be used
+  fields:
+    charger_name:
+      description: name of the charger to update (if not specified all chargers will be changed)
+      example: "charger1"
+    phases:
+      description: The number of phases used for charging. Can be 1 or 3.
+      default: "3"
+      required: true
+      selector:
+        select:
+          options:
+            - "1"
+            - "2"
+
+    

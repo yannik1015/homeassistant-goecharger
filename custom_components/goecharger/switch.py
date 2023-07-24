@@ -5,12 +5,10 @@ from homeassistant.const import CONF_HOST
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant import core, config_entries
 
-from goecharger import GoeCharger as GoeChargerV1
-
-from .const import DOMAIN, CONF_CHARGERS, CONF_NAME, CHARGER_API
+from .const import DOMAIN, CONF_CHARGERS, CONF_NAME, CHARGER_API, CONF_API_LEVEL
+from .charger import Charger
 
 _LOGGER = logging.getLogger(__name__)
-
 
 async def async_setup_entry(
     hass: core.HomeAssistant,
@@ -23,7 +21,8 @@ async def async_setup_entry(
 
     chargerName = config[CONF_NAME]
     host = config[CONF_HOST]
-    chargerApi = GoeChargerV1(host)
+    api_level = config[CONF_API_LEVEL]
+    chargerApi = Charger(host, api_level)
 
     entities = []
 
@@ -56,6 +55,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     for charger in chargers:
         chargerName = charger[0][CONF_NAME]
+        # api_level = charger[0][CONF_API_LEVEL] # TODO: Remove if not needed but also double check if API level is available here
 
         attribute = "allow_charging"
         entities.append(

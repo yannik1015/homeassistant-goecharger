@@ -14,7 +14,8 @@ from homeassistant.components.sensor import (
 )
 
 
-from .const import CONF_CHARGERS, DOMAIN, CONF_NAME, CONF_CORRECTION_FACTOR
+from .const import CONF_CHARGERS, DOMAIN, CONF_NAME, CONF_CORRECTION_FACTOR, CONF_API_LEVEL
+from .charger import InvalidAPILevelError
 
 AMPERE = 'A'
 VOLT = 'V'
@@ -73,7 +74,7 @@ _sensorDeviceClass = {
     'current_session_charged_energy_corrected': DEVICE_CLASS_ENERGY
 }
 
-_sensors = [
+_sensorsv1 = [
     'car_status',
     'charger_max_current',
     'charger_absolute_max_current',
@@ -127,13 +128,16 @@ _sensors = [
     'timezone_dst_offset',
 ]
 
+# TODO: Add Sensor for APIv2
+_sensorsv2 = []
 
-def _create_sensors_for_charger(chargerName, hass, correctionFactor):
+
+def _create_sensors_for_charger(chargerName, hass, correctionFactor, api_level):
     entities = []
 
-    for sensor in _sensors:
-
+    def add_sensor(sensor):
         _LOGGER.debug(f"adding Sensor: {sensor} for charger {chargerName}")
+
         sensorUnit = _sensorUnits.get(sensor).get('unit') if _sensorUnits.get(sensor) else ''
         sensorName = _sensorUnits.get(sensor).get('name') if _sensorUnits.get(sensor) else sensor
         sensorStateClass = _sensorStateClass[sensor] if sensor in _sensorStateClass else ''
@@ -145,6 +149,15 @@ def _create_sensors_for_charger(chargerName, hass, correctionFactor):
                 chargerName, sensorName, sensor, sensorUnit, sensorStateClass, sensorDeviceClass, correctionFactor
             )
         )
+
+    if api_level == "1":
+        for sensor in _sensorsv1:
+            add_sensor(sensor)
+    elif api_level == "2":
+        for sensor in _sensorsv2:
+            add_sensor(sensor)
+    else:
+        raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
 
     return entities
 
@@ -158,6 +171,7 @@ async def async_setup_entry(
     config = config_entry.as_dict()["data"]
 
     chargerName = config[CONF_NAME]
+    api_level = config[CONF_API_LEVEL]
 
     correctionFactor = 1.0
     if CONF_CORRECTION_FACTOR in config:
@@ -168,7 +182,7 @@ async def async_setup_entry(
 
     _LOGGER.debug(f"charger name: '{chargerName}'")
     _LOGGER.debug(f"config: '{config}'")
-    async_add_entities(_create_sensors_for_charger(chargerName, hass, correctionFactor))
+    async_add_entities(_create_sensors_for_charger(chargerName, hass, correctionFactor, api_level))
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -182,6 +196,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entities = []
     for charger in chargers:
         chargerName = charger[0][CONF_NAME]
+        api_level = charger[0][CONF_API_LEVEL] # ToDo: Check
         _LOGGER.debug(f"charger name: '{chargerName}'")
         _LOGGER.debug(f"charger[0]: '{charger[0]}'")
         correctionFactor = 1.0
@@ -192,7 +207,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                 __LOGGER.warn(f"can't parse correctionFactor. Using 1.0")
                 correctionFactor = 1.0
 
-        entities.extend(_create_sensors_for_charger(chargerName, hass, correctionFactor))
+        entities.extend(_create_sensors_for_charger(chargerName, hass, correctionFactor, api_level))
 
     async_add_entities(entities)
 
