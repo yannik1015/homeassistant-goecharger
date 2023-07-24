@@ -1,7 +1,6 @@
 from enum import Enum
 from goecharger import GoeCharger as GoeChargerV1
 from goecharger_api_lite import GoeCharger as GoeChargerV2
-from .charger import InvalidAPILevelError
 
 import logging
 
@@ -64,8 +63,8 @@ class Charger:
         elif self.api_level == "2":
             # TODO: Implement in charging APIv2 (key dwo)
             
-            # Conversion from 0.1 kWh to to Wh
-            chargeLimit = chargeLimit * 100
+            # Conversion from kWh to to Wh
+            chargeLimit = chargeLimit * 1000
             # return GoeChargerV2.set_ampere(maxCurrent)
 
             raise NotImplemented
