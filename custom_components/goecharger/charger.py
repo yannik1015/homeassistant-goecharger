@@ -63,7 +63,7 @@ class Charger:
         elif self.api_level == "2":
             # TODO: Implement in charging APIv2 (key dwo)
             
-            # Conversion from kWh to to Wh
+            # Conversion from kWh to Wh
             chargeLimit = chargeLimit * 1000
             # return GoeChargerV2.set_ampere(maxCurrent)
 

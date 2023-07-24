@@ -323,7 +323,7 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
 
         await hass.data[DOMAIN]["coordinator"].async_refresh()
 
-    def async_handle_set_phase_mode(call):
+    async def async_handle_set_phase_mode(call):
         """Handle the service to set the phase mode."""
         # TODO: Check
 
