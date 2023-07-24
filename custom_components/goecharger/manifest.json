@@ -11,7 +11,7 @@
   "issue_tracker": "https://github.com/cathiele/homeassistant-goecharger/issues",
   "requirements": [
     "goecharger",
-    "git+https://github.com/yannik1015/goecharger-api-lite.git@main#goecharger_api_lite==1.1.1"
+    "goecharger_api_lite"
   ],
   "version": "0.25.3"
 }
