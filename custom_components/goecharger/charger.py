@@ -42,8 +42,8 @@ class Charger:
             return GoeChargerV1.setAbsoluteMaxCurrent(absoluteMaxCurrent)
         elif self.api_level == "2":
             # TODO: Implement in charging APIv2 (key ama)
-            # return GoeChargerV2.(absoluteMaxCurrent)
-            raise NotImplemented
+            # return GoeChargerV2.set_absolute_max_current(absoluteMaxCurrent)
+            return GoeChargerV2.set_key("ama", absoluteMaxCurrent)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
@@ -52,8 +52,8 @@ class Charger:
            return GoeChargerV1.setCableLockMode(cableLockModeEnum)
         elif self.api_level == "2":
             # TODO: Implement in charging APIv2 (key ust)
-            # return GoeChargerV2.(cableLockModeEnum)
-            raise NotImplemented
+            # return GoeChargerV2.set_cable_lock_mode(cableLockModeEnum)
+            return GoeChargerV2.set_key("ust", cableLockModeEnum)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
@@ -65,9 +65,8 @@ class Charger:
             
             # Conversion from kWh to Wh
             chargeLimit = chargeLimit * 1000
-            # return GoeChargerV2.set_ampere(maxCurrent)
-
-            raise NotImplemented
+            # return GoeChargerV2.set_charge_limit(chargeLimit)
+            return GoeChargerV2.set_key("dwo", chargeLimit)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
     
@@ -94,7 +93,8 @@ class Charger:
         UNLOCKCARFIRST = 0
         AUTOMATIC = 1
         LOCKED = 2
-    
+
+    # TODO: Eventually allow setting to auto
     @property
     def PhaseModeEnum(self):
         return GoeChargerV2.SettableValueEnum.PhaseMode
