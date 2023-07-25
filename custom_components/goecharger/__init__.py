@@ -11,8 +11,10 @@ from homeassistant import core
 from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN, CONF_SERIAL, CONF_CHARGERS, CONF_CORRECTION_FACTOR, CONF_NAME, CHARGER_API
+from .const import DOMAIN, CONF_SERIAL, CONF_CHARGERS, CONF_CORRECTION_FACTOR, CONF_NAME, CHARGER_API, PLATFORMS
+from .coordinator import GoeChargerUpdateCoordinator
 from goecharger import GoeCharger
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,16 +66,16 @@ async def async_setup_entry(hass, config):
 
     name = config.data[CONF_NAME]
     charger = GoeCharger(config.data[CONF_HOST])
+    # TODO: Check if timedelta is correct
+    update_interval = timedelta(config.data[CONF_SCAN_INTERVAL])
     hass.data[DOMAIN]["api"][name] = charger
 
-    await hass.data[DOMAIN]["coordinator"].async_refresh()
+    hass.data[DOMAIN][config.entry_id] = GoeChargerUpdateCoordinator(hass, name, charger, update_interval)
 
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(config, "sensor")
-    )
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(config, "switch")
-    )
+    await hass.data[DOMAIN][config.entry_id].async_refresh()
+
+    await hass.config_entries.async_forward_entry_setups(config, PLATFORMS)
+    
     return True
 
 async def update_listener(hass, config):
@@ -84,7 +86,7 @@ async def update_listener(hass, config):
     charger = GoeCharger(config.data[CONF_HOST])
     hass.data[DOMAIN]["api"][name] = charger
 
-    await hass.data[DOMAIN]["coordinator"].async_refresh()
+    await hass.data[DOMAIN][config.entry_id].async_refresh()
 
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(config, "sensor")
@@ -98,42 +100,28 @@ async def update_listener(hass, config):
 
 async def async_unload_entry(hass, entry):
     _LOGGER.debug(f"Unloading charger '{entry.data[CONF_NAME]}")
-    hass.data[DOMAIN]["api"].pop(entry.data[CONF_NAME])
-    return True
-
-
-class ChargerStateFetcher:
-    def __init__(self, hass):
-        self._hass = hass
-
-    async def fetch_states(self):
-        _LOGGER.debug('Updating status...')
-        goeChargers = self._hass.data[DOMAIN]["api"]
-        data = self.coordinator.data if self.coordinator.data else {}
-        for chargerName in goeChargers.keys():
-            _LOGGER.debug(f"update for '{chargerName}'..")
-            fetchedStatus = await self._hass.async_add_executor_job(goeChargers[chargerName].requestStatus)
-            if fetchedStatus.get("car_status", "unknown") != "unknown":
-                data[chargerName] = fetchedStatus
-            else:
-                _LOGGER.error(f"Unable to fetch state for Charger {chargerName}")
-        return data
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        hass.data[DOMAIN]["api"].pop(entry.data[CONF_NAME])
+    
+    return unload_ok
 
 
 async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
     """Set up go-eCharger platforms and services."""
 
     _LOGGER.debug("async_setup")
-    scan_interval = DEFAULT_UPDATE_INTERVAL
 
     hass.data[DOMAIN] = {}
     chargerApi = {}
     chargers = []
+
+    # Setup devices configured in the configuration.yaml#
+    # TODO Check: May not support multiple chargers
     if DOMAIN in config:
         scan_interval = config[DOMAIN].get(CONF_SCAN_INTERVAL, DEFAULT_UPDATE_INTERVAL)
-
         host = config[DOMAIN].get(CONF_HOST, False)
         serial = config[DOMAIN].get(CONF_SERIAL, "unknown")
+
         try:
             correctionFactor = float(config[DOMAIN].get(CONF_CORRECTION_FACTOR, "1.0"))
         except:
@@ -160,20 +148,19 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
 
     hass.data[DOMAIN]["api"] = chargerApi
 
-    chargeStateFecher = ChargerStateFetcher(hass)
+    # chargeStateFecher = ChargerStateFetcher(hass)
 
-    coordinator = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name=DOMAIN,
-        update_method=chargeStateFecher.fetch_states,
-        update_interval=scan_interval,
-    )
-    chargeStateFecher.coordinator = coordinator
+    # coordinator = DataUpdateCoordinator(
+    #     hass,
+    #     _LOGGER,
+    #     name=DOMAIN,
+    #     update_method=chargeStateFecher.fetch_states,
+    #     update_interval=scan_interval,
+    # )
+    # chargeStateFecher.coordinator = coordinator
 
-    hass.data[DOMAIN]["coordinator"] = coordinator
-
-    await coordinator.async_refresh()
+    # hass.data[DOMAIN]["coordinator"] = coordinator
+    # await coordinator.async_refresh()
 
     async def async_handle_set_max_current(call):
         """Handle the service call to set the absolute max current."""
@@ -216,6 +203,7 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
                 except KeyError:
                     _LOGGER.error(f"Charger with name '{chargerName}' not found!")
 
+        # TODO: Replace this everywhere with await hass.data[DOMAIN][config.entry_id].async_refresh() maybe for each charger!
         await hass.data[DOMAIN]["coordinator"].async_refresh()
 
     async def async_handle_set_absolute_max_current(call):
@@ -344,6 +332,8 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
 
         await hass.data[DOMAIN]["coordinator"].async_refresh()
 
+    # TODO: Register services for each entity
+    # TODO: Filter available services based on attribute (https://developers.home-assistant.io/docs/dev_101_services/) => Find out how to set a API-Level attribute
     hass.services.async_register(DOMAIN, "set_max_current", async_handle_set_max_current)
     hass.services.async_register(
         DOMAIN, "set_absolute_max_current", async_handle_set_absolute_max_current
@@ -351,11 +341,11 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
     hass.services.async_register(DOMAIN, "set_cable_lock_mode", async_handle_set_cable_lock_mode)
     hass.services.async_register(DOMAIN, "set_charge_limit", async_handle_set_charge_limit)
 
-    hass.async_create_task(async_load_platform(
-        hass, "sensor", DOMAIN, {CONF_CHARGERS: chargers, CHARGER_API: chargerApi}, config)
-    )
-    hass.async_create_task(async_load_platform(
-        hass, "switch", DOMAIN, {CONF_CHARGERS: chargers, CHARGER_API: chargerApi}, config)
-    )
+    # hass.async_create_task(async_load_platform(
+    #     hass, "sensor", DOMAIN, {CONF_CHARGERS: chargers, CHARGER_API: chargerApi}, config)
+    # )
+    # hass.async_create_task(async_load_platform(
+    #     hass, "switch", DOMAIN, {CONF_CHARGERS: chargers, CHARGER_API: chargerApi}, config)
+    # )
 
     return True

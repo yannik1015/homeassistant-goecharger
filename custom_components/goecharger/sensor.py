@@ -1,5 +1,6 @@
 """Platform for go-eCharger sensor integration."""
 import logging
+from .coordinator import GoeChargerUpdateCoordinator
 from homeassistant.const import (
     TEMP_CELSIUS,
     ENERGY_KILO_WATT_HOUR
@@ -7,6 +8,7 @@ from homeassistant.const import (
 
 from homeassistant import core, config_entries
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.entity_platform import AddEntititesCallback
 from homeassistant.components.sensor import (
     STATE_CLASS_TOTAL_INCREASING,
     DEVICE_CLASS_ENERGY,
@@ -152,10 +154,12 @@ def _create_sensors_for_charger(chargerName, hass, correctionFactor):
 async def async_setup_entry(
     hass: core.HomeAssistant,
     config_entry: config_entries.ConfigEntry,
-    async_add_entities,
+    async_add_entities: AddEntititesCallback,
 ):
-    _LOGGER.debug("setup sensors...")
+    _LOGGER.debug("Setup sensors...")
+    
     config = config_entry.as_dict()["data"]
+    coordinator: GoeChargerUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     chargerName = config[CONF_NAME]
 
@@ -174,27 +178,27 @@ async def async_setup_entry(
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up go-eCharger Sensor platform."""
     _LOGGER.debug("setup_platform")
-    if discovery_info is None:
-        return
+    # if discovery_info is None:
+    #     return
 
-    chargers = discovery_info[CONF_CHARGERS]
+    # chargers = discovery_info[CONF_CHARGERS]
 
-    entities = []
-    for charger in chargers:
-        chargerName = charger[0][CONF_NAME]
-        _LOGGER.debug(f"charger name: '{chargerName}'")
-        _LOGGER.debug(f"charger[0]: '{charger[0]}'")
-        correctionFactor = 1.0
-        if CONF_CORRECTION_FACTOR in charger[0]:
-            try:
-                correctionFactor = charger[0][CONF_CORRECTION_FACTOR]
-            except:
-                __LOGGER.warn(f"can't parse correctionFactor. Using 1.0")
-                correctionFactor = 1.0
+    # entities = []
+    # for charger in chargers:
+    #     chargerName = charger[0][CONF_NAME]
+    #     _LOGGER.debug(f"charger name: '{chargerName}'")
+    #     _LOGGER.debug(f"charger[0]: '{charger[0]}'")
+    #     correctionFactor = 1.0
+    #     if CONF_CORRECTION_FACTOR in charger[0]:
+    #         try:
+    #             correctionFactor = charger[0][CONF_CORRECTION_FACTOR]
+    #         except:
+    #             __LOGGER.warn(f"can't parse correctionFactor. Using 1.0")
+    #             correctionFactor = 1.0
 
-        entities.extend(_create_sensors_for_charger(chargerName, hass, correctionFactor))
+    #     entities.extend(_create_sensors_for_charger(chargerName, hass, correctionFactor))
 
-    async_add_entities(entities)
+    # async_add_entities(entities)
 
 
 class GoeChargerSensor(CoordinatorEntity, SensorEntity):
