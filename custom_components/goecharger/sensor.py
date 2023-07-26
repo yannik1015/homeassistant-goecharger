@@ -1,20 +1,22 @@
 """Platform for go-eCharger sensor integration."""
 import logging
 from .coordinator import GoeChargerUpdateCoordinator
+from .entity import GoeChargerEntity
+
 from homeassistant.const import (
     TEMP_CELSIUS,
     ENERGY_KILO_WATT_HOUR
 )
 
 from homeassistant import core, config_entries
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.entity_platform import AddEntititesCallback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.sensor import (
     STATE_CLASS_TOTAL_INCREASING,
     DEVICE_CLASS_ENERGY,
     SensorEntity
 )
-
 
 from .const import CONF_CHARGERS, DOMAIN, CONF_NAME, CONF_CORRECTION_FACTOR
 
@@ -130,37 +132,34 @@ _sensors = [
 ]
 
 
-def _create_sensors_for_charger(chargerName, hass, correctionFactor):
-    entities = []
-
-    for sensor in _sensors:
-
-        _LOGGER.debug(f"adding Sensor: {sensor} for charger {chargerName}")
-        sensorUnit = _sensorUnits.get(sensor).get('unit') if _sensorUnits.get(sensor) else ''
-        sensorName = _sensorUnits.get(sensor).get('name') if _sensorUnits.get(sensor) else sensor
-        sensorStateClass = _sensorStateClass[sensor] if sensor in _sensorStateClass else ''
-        sensorDeviceClass = _sensorDeviceClass[sensor] if sensor in _sensorDeviceClass else ''
-        entities.append(
-            GoeChargerSensor(
-                hass.data[DOMAIN]["coordinator"],
-                f"sensor.goecharger_{chargerName}_{sensor}",
-                chargerName, sensorName, sensor, sensorUnit, sensorStateClass, sensorDeviceClass, correctionFactor
-            )
-        )
-
-    return entities
-
-
 async def async_setup_entry(
     hass: core.HomeAssistant,
     config_entry: config_entries.ConfigEntry,
-    async_add_entities: AddEntititesCallback,
+    async_add_entities: AddEntitiesCallback,
 ):
     _LOGGER.debug("Setup sensors...")
     
+    def _create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator):
+        entities = []
+
+        for sensor in _sensors:
+            _LOGGER.debug(f"adding Sensor: {sensor} for charger {chargerName}")
+            sensorUnit = _sensorUnits.get(sensor).get('unit') if _sensorUnits.get(sensor) else ''
+            sensorName = _sensorUnits.get(sensor).get('name') if _sensorUnits.get(sensor) else sensor
+            sensorStateClass = _sensorStateClass[sensor] if sensor in _sensorStateClass else ''
+            sensorDeviceClass = _sensorDeviceClass[sensor] if sensor in _sensorDeviceClass else ''
+            entities.append(
+                GoeChargerSensor(
+                    coordinator,
+                    f"sensor.goecharger_{chargerName}_{sensor}",
+                    chargerName, sensorName, sensor, sensorUnit, sensorStateClass, sensorDeviceClass, correctionFactor
+                )
+            )
+
+        return entities
+    
     config = config_entry.as_dict()["data"]
     coordinator: GoeChargerUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
-
     chargerName = config[CONF_NAME]
 
     correctionFactor = 1.0
@@ -172,80 +171,56 @@ async def async_setup_entry(
 
     _LOGGER.debug(f"charger name: '{chargerName}'")
     _LOGGER.debug(f"config: '{config}'")
-    async_add_entities(_create_sensors_for_charger(chargerName, hass, correctionFactor))
+    async_add_entities(_create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator))
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Set up go-eCharger Sensor platform."""
-    _LOGGER.debug("setup_platform")
-    # if discovery_info is None:
-    #     return
+# async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+#     """Set up go-eCharger Sensor platform."""
+#     _LOGGER.debug("setup_platform")
+#     if discovery_info is None:
+#         return
 
-    # chargers = discovery_info[CONF_CHARGERS]
+#     chargers = discovery_info[CONF_CHARGERS]
 
-    # entities = []
-    # for charger in chargers:
-    #     chargerName = charger[0][CONF_NAME]
-    #     _LOGGER.debug(f"charger name: '{chargerName}'")
-    #     _LOGGER.debug(f"charger[0]: '{charger[0]}'")
-    #     correctionFactor = 1.0
-    #     if CONF_CORRECTION_FACTOR in charger[0]:
-    #         try:
-    #             correctionFactor = charger[0][CONF_CORRECTION_FACTOR]
-    #         except:
-    #             __LOGGER.warn(f"can't parse correctionFactor. Using 1.0")
-    #             correctionFactor = 1.0
+#     entities = []
+#     for charger in chargers:
+#         chargerName = charger[0][CONF_NAME]
+#         _LOGGER.debug(f"charger name: '{chargerName}'")
+#         _LOGGER.debug(f"charger[0]: '{charger[0]}'")
+#         correctionFactor = 1.0
+#         if CONF_CORRECTION_FACTOR in charger[0]:
+#             try:
+#                 correctionFactor = charger[0][CONF_CORRECTION_FACTOR]
+#             except:
+#                 __LOGGER.warn(f"can't parse correctionFactor. Using 1.0")
+#                 correctionFactor = 1.0
 
-    #     entities.extend(_create_sensors_for_charger(chargerName, hass, correctionFactor))
+#         entities.extend(_create_sensors_for_charger(chargerName, hass, correctionFactor))
 
-    # async_add_entities(entities)
+#     async_add_entities(entities)
 
 
-class GoeChargerSensor(CoordinatorEntity, SensorEntity):
-    def __init__(self, coordinator, entity_id, chargerName, name, attribute, unit, stateClass, deviceClass, correctionFactor):
+class GoeChargerSensor(GoeChargerEntity, SensorEntity):
+    def __init__(
+            self, coordinator, attr_unique_id, device_name, name, attribute, unit, stateClass, deviceClass, correctionFactor
+        ):
         """Initialize the go-eCharger sensor."""
 
-        super().__init__(coordinator)
-        self._chargername = chargerName
-        self.entity_id = entity_id
-        self._name = name
+        super().__init__(coordinator.charger, coordinator, attr_unique_id, device_name, name)
         self._attribute = attribute
         self._unit = unit
         self._attr_state_class = stateClass
         self._attr_device_class = deviceClass
         self.correctionFactor = correctionFactor
 
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                # Serial numbers are unique identifiers within a specific domain
-                (DOMAIN, self._chargername)
-            },
-            "name": self._chargername,
-            "manufacturer": "go-e",
-            "model": "HOME",
-        }
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
-    def unique_id(self):
-        """Return the unique_id of the sensor."""
-        return f"{self._chargername}_{self._attribute}"
-
     @property
     def state(self):
         """Return the state of the sensor."""
         if (self._attribute == 'energy_total_corrected'):
-            return self.coordinator.data[self._chargername]['energy_total'] * self.correctionFactor
+            return self.coordinator.data[self.device_name]['energy_total'] * self.correctionFactor
         if (self._attribute == 'current_session_charged_energy_corrected'):
-            return self.coordinator.data[self._chargername]['current_session_charged_energy'] * self.correctionFactor   
-        return self.coordinator.data[self._chargername][self._attribute]
+            return self.coordinator.data[self.device_name]['current_session_charged_energy'] * self.correctionFactor   
+        return self.coordinator.data[self.device_name][self._attribute]
 
     @property
     def unit_of_measurement(self):

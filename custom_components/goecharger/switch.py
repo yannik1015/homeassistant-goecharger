@@ -35,7 +35,6 @@ async def async_setup_entry(
         GoeChargerSwitch(
             coordinator,
             hass,
-            coordinator.charger,
             f"switch.goecharger_{chargerName}_{attribute}",
             chargerName,
             "Charging allowed",
@@ -76,12 +75,13 @@ async def async_setup_entry(
 
 class GoeChargerSwitch(GoeChargerEntity, SwitchEntity):
     def __init__(
-        self, coordinator, hass, goeCharger, entity_id, device_name, name
+        self, coordinator, hass, entity_id, device_name, name
     ):
         """Initialize the go-eCharger switch."""
-        super().__init__(goeCharger, coordinator, entity_id, device_name)
+        super().__init__(coordinator.charger, coordinator, entity_id, device_name, name)
         self.hass = hass
         self._state = None
+        self._attribute = "allow_charging"
 
         # TODO: Check if this is needed
         # self._attr_unique_id = f"{self._chargername}_allow_charging"
@@ -91,6 +91,7 @@ class GoeChargerSwitch(GoeChargerEntity, SwitchEntity):
     #     """Return the icon."""
     #     return "mdi:ev-station"
 
+    # TODO: Fix state changing to on/off even though no connection can be made
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
         await self.hass.async_add_executor_job(self.goeCharger.setAllowCharging, True)
@@ -109,8 +110,3 @@ class GoeChargerSwitch(GoeChargerEntity, SwitchEntity):
             return True if self.coordinator.data[self.device_name][self._attr_unique_id] == "on" else False
         except KeyError:
             return False
-
-    # @property
-    # def unique_id(self):
-    #     """Return the unique_id of the switch."""
-    #     return f"{self._chargername}_{self._attribute}"

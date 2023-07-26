@@ -41,6 +41,8 @@ class GoeChargerUpdateCoordinator(DataUpdateCoordinator[None]):
             data = self.data if self.data else {}
             fetchedStatus = await self.hass.async_add_executor_job(self.charger.requestStatus)
 
+            # TODO: Maybe save the data here in some way
+
             if fetchedStatus.get("car_status", "unknown") != "unknown":
                 self.data = fetchedStatus
             else:
