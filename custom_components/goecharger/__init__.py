@@ -66,7 +66,6 @@ async def async_setup_entry(hass, config):
 
     name = config.data[CONF_NAME]
     charger = GoeCharger(config.data[CONF_HOST])
-    # TODO: Check if timedelta is correct
     update_interval = timedelta(config.data[CONF_SCAN_INTERVAL])
     hass.data[DOMAIN]["api"][name] = charger
 
