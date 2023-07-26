@@ -10,7 +10,8 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/cathiele/homeassistant-goecharger/issues",
   "requirements": [
-    "goecharger==0.0.16"
+    "goecharger",
+    "goecharger_api_lite"
   ],
   "version": "0.25.3"
 }

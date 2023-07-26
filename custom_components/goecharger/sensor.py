@@ -18,7 +18,9 @@ from homeassistant.components.sensor import (
     SensorEntity
 )
 
-from .const import CONF_CHARGERS, DOMAIN, CONF_NAME, CONF_CORRECTION_FACTOR
+
+from .const import CONF_CHARGERS, DOMAIN, CONF_NAME, CONF_CORRECTION_FACTOR, CONF_API_LEVEL
+from .charger import InvalidAPILevelError
 
 AMPERE = 'A'
 VOLT = 'V'
@@ -60,7 +62,8 @@ _sensorUnits = {
     'lf_l2': {'unit': PERCENT, 'name': 'Power factor L2'},
     'lf_l3': {'unit': PERCENT, 'name': 'Power factor L3'},
     'lf_n': {'unit': PERCENT, 'name': 'Loadfactor N'},
-    'car_status': {'unit': '', 'name': 'Status'}
+    'car_status': {'unit': '', 'name': 'Status'},
+    'phase_mode': {'unit': '', 'name': 'Phase mode'}
 }
 
 _sensorStateClass = {
@@ -77,7 +80,7 @@ _sensorDeviceClass = {
     'current_session_charged_energy_corrected': DEVICE_CLASS_ENERGY
 }
 
-_sensors = [
+_sensorsv1 = [
     'car_status',
     'charger_max_current',
     'charger_absolute_max_current',
@@ -131,6 +134,10 @@ _sensors = [
     'timezone_dst_offset',
 ]
 
+# TODO: Add Sensor for APIv2
+_sensorsv2 = [
+    'phase_mode',
+]
 
 async def async_setup_entry(
     hass: core.HomeAssistant,
@@ -142,7 +149,7 @@ async def async_setup_entry(
     def _create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator):
         entities = []
 
-        for sensor in _sensors:
+        def add_sensor(sensor):
             _LOGGER.debug(f"adding Sensor: {sensor} for charger {chargerName}")
             sensorUnit = _sensorUnits.get(sensor).get('unit') if _sensorUnits.get(sensor) else ''
             sensorName = _sensorUnits.get(sensor).get('name') if _sensorUnits.get(sensor) else sensor
@@ -161,11 +168,21 @@ async def async_setup_entry(
                 )
             )
 
+        if api_level == "1":
+            for sensor in _sensorsv1:
+                add_sensor(sensor)
+        elif api_level == "2":
+            for sensor in _sensorsv2:
+                add_sensor(sensor)
+        else:
+            raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
+            
         return entities
     
     config = config_entry.as_dict()["data"]
     coordinator: GoeChargerUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
     chargerName = config[CONF_NAME]
+    api_level = config[CONF_API_LEVEL]
 
     correctionFactor = 1.0
     if CONF_CORRECTION_FACTOR in config:
@@ -176,6 +193,7 @@ async def async_setup_entry(
 
     _LOGGER.debug(f"charger name: '{chargerName}'")
     _LOGGER.debug(f"config: '{config}'")
+    
     async_add_entities(_create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator))
 
 
