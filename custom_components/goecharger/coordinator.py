@@ -41,12 +41,12 @@ class GoeChargerUpdateCoordinator(DataUpdateCoordinator[None]):
             data = self.data if self.data else {}
             fetchedStatus = await self.hass.async_add_executor_job(self.charger.requestStatus)
 
-            # TODO: Maybe save the data here in some way
-
             if fetchedStatus.get("car_status", "unknown") != "unknown":
                 self.data = fetchedStatus
             else:
                 _LOGGER.error(f"Unable to fetch state for charger {self.name}")
+            
+            # TODO: Check if the return values of the requestStatus are matching the self._attribute in the entities
             return data
         except:
             _LOGGER.exception(f"Error fetching state for charger {self.name}")

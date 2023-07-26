@@ -33,16 +33,16 @@ class GoeChargerEntity(CoordinatorEntity[GoeChargerUpdateCoordinator]):
         self, 
         device: GoeCharger, 
         coordinator: GoeChargerUpdateCoordinator, 
-        attr_unique_id: str,
         device_name: str,
         name: str
     ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator)
         self.goeCharger: GoeCharger = device
-        self._attr_unique_id = attr_unique_id
+        # self._attr_unique_id = attr_unique_id
         self.device_name = device_name
-        self._name = name
+        # self._name = name
+        self._name = f'{device_name} {name}'
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -66,8 +66,3 @@ class GoeChargerEntity(CoordinatorEntity[GoeChargerUpdateCoordinator]):
         # TODO: Implement here or in the sensor/switch class
         # self._attr_is_on = self.coordinator.data[self.idx]["state"]
         self.async_write_ha_state()
-
-    @property
-    def unique_id(self):
-        """Return the unique_id of the entity."""
-        return self._attr_unique_id

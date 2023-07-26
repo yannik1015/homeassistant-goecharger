@@ -151,8 +151,13 @@ async def async_setup_entry(
             entities.append(
                 GoeChargerSensor(
                     coordinator,
-                    f"sensor.goecharger_{chargerName}_{sensor}",
-                    chargerName, sensorName, sensor, sensorUnit, sensorStateClass, sensorDeviceClass, correctionFactor
+                    chargerName, 
+                    sensorName, 
+                    sensor, 
+                    sensorUnit, 
+                    sensorStateClass, 
+                    sensorDeviceClass, 
+                    correctionFactor
                 )
             )
 
@@ -174,39 +179,13 @@ async def async_setup_entry(
     async_add_entities(_create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator))
 
 
-# async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-#     """Set up go-eCharger Sensor platform."""
-#     _LOGGER.debug("setup_platform")
-#     if discovery_info is None:
-#         return
-
-#     chargers = discovery_info[CONF_CHARGERS]
-
-#     entities = []
-#     for charger in chargers:
-#         chargerName = charger[0][CONF_NAME]
-#         _LOGGER.debug(f"charger name: '{chargerName}'")
-#         _LOGGER.debug(f"charger[0]: '{charger[0]}'")
-#         correctionFactor = 1.0
-#         if CONF_CORRECTION_FACTOR in charger[0]:
-#             try:
-#                 correctionFactor = charger[0][CONF_CORRECTION_FACTOR]
-#             except:
-#                 __LOGGER.warn(f"can't parse correctionFactor. Using 1.0")
-#                 correctionFactor = 1.0
-
-#         entities.extend(_create_sensors_for_charger(chargerName, hass, correctionFactor))
-
-#     async_add_entities(entities)
-
-
 class GoeChargerSensor(GoeChargerEntity, SensorEntity):
     def __init__(
-            self, coordinator, attr_unique_id, device_name, name, attribute, unit, stateClass, deviceClass, correctionFactor
+            self, coordinator, device_name, name, attribute, unit, stateClass, deviceClass, correctionFactor
         ):
         """Initialize the go-eCharger sensor."""
 
-        super().__init__(coordinator.charger, coordinator, attr_unique_id, device_name, name)
+        super().__init__(coordinator.charger, coordinator, device_name, name)
         self._attribute = attribute
         self._unit = unit
         self._attr_state_class = stateClass
@@ -216,13 +195,23 @@ class GoeChargerSensor(GoeChargerEntity, SensorEntity):
     @property
     def state(self):
         """Return the state of the sensor."""
+
+        # # TODO: Check if this try/exept is needed
+        # try:
         if (self._attribute == 'energy_total_corrected'):
-            return self.coordinator.data[self.device_name]['energy_total'] * self.correctionFactor
+            return self.coordinator.data['energy_total'] * self.correctionFactor
         if (self._attribute == 'current_session_charged_energy_corrected'):
-            return self.coordinator.data[self.device_name]['current_session_charged_energy'] * self.correctionFactor   
-        return self.coordinator.data[self.device_name][self._attribute]
+            return self.coordinator.data['current_session_charged_energy'] * self.correctionFactor   
+        return self.coordinator.data[self._attribute]
+        # except KeyError:
+        #     return None
 
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement."""
         return self._unit
+
+    @property
+    def unique_id(self):
+        """Return the unique_id of the sensor."""
+        return f"sensor.{DOMAIN}.{self.device_name}_{self._attribute}"

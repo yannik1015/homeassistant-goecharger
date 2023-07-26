@@ -1,5 +1,7 @@
 """Platform for go-eCharger switch integration."""
 import logging
+
+from requests import ConnectTimeout
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import CONF_HOST
 # from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -35,7 +37,6 @@ async def async_setup_entry(
         GoeChargerSwitch(
             coordinator,
             hass,
-            f"switch.goecharger_{chargerName}_{attribute}",
             chargerName,
             "Charging allowed",
         )
@@ -44,41 +45,12 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-# async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-#     """Set up go-eCharger Switch platform."""
-#     if discovery_info is None:
-#         return
-#     _LOGGER.debug("setup_platform")
-
-#     chargers = discovery_info[CONF_CHARGERS]
-#     chargerApi = discovery_info[CHARGER_API]
-
-#     entities = []
-
-#     for charger in chargers:
-#         chargerName = charger[0][CONF_NAME]
-
-#         attribute = "allow_charging"
-#         entities.append(
-#             GoeChargerSwitch(
-#                 hass.data[DOMAIN]["coordinator"],
-#                 hass,
-#                 chargerApi[chargerName],
-#                 f"switch.goecharger_{chargerName}_{attribute}",
-#                 chargerName,
-#                 "Charging allowed",
-#                 attribute,
-#             )
-#         )
-#     async_add_entities(entities)
-
-
 class GoeChargerSwitch(GoeChargerEntity, SwitchEntity):
     def __init__(
-        self, coordinator, hass, entity_id, device_name, name
+        self, coordinator, hass, device_name, name
     ):
         """Initialize the go-eCharger switch."""
-        super().__init__(coordinator.charger, coordinator, entity_id, device_name, name)
+        super().__init__(coordinator.charger, coordinator, device_name, name)
         self.hass = hass
         self._state = None
         self._attribute = "allow_charging"
@@ -107,6 +79,11 @@ class GoeChargerSwitch(GoeChargerEntity, SwitchEntity):
         """Return the state of the switch."""
         # TODO: Check if this is still correct and maybe remove the try/except and check if the sensor is getting set up
         try:
-            return True if self.coordinator.data[self.device_name][self._attr_unique_id] == "on" else False
+            return True if self.coordinator.data[self._attribute] == "on" else False
         except KeyError:
             return False
+
+    @property
+    def unique_id(self):
+        """Return the unique_id of the switch."""
+        return f"switch.{DOMAIN}.{self.device_name}_{self._attribute}"
