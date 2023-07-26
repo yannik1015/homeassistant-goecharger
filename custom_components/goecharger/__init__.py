@@ -66,7 +66,7 @@ async def async_setup_entry(hass, config):
     config.async_on_unload(config.add_update_listener(update_listener))
 
     name = config.data[CONF_NAME]
-    charger = GoeCharger(config.data[CONF_HOST])
+    charger = Charger(config.data[CONF_HOST], config.data[CONF_API_LEVEL])
     update_interval = timedelta(config.data[CONF_SCAN_INTERVAL])
     hass.data[DOMAIN]["api"][name] = charger
 
@@ -83,7 +83,6 @@ async def update_listener(hass, config):
     _LOGGER.debug("update_listener")
 
     name = config.data[CONF_NAME]
-    # charger = GoeChargerV1(config.data[CONF_HOST])
     goeCharger = Charger(config.data[CONF_HOST], config.data[CONF_API_LEVEL])
     hass.data[DOMAIN]["api"][name] = goeCharger
 
@@ -113,7 +112,7 @@ async def async_migrate_entry(hass, config_entry):
     if config_entry.version == 1:
         new = {**config_entry.data}
         
-        new[CONF_API_LEVEL] = 1
+        new[CONF_API_LEVEL] = "1"
         config_entry.version = 2
 
         hass.config_entries.async_update_entry(config_entry, data=new)

@@ -5,8 +5,7 @@ import async_timeout
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from goecharger import GoeCharger
-
+from .charger import Charger
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +16,7 @@ class GoeChargerUpdateCoordinator(DataUpdateCoordinator[None]):
             self, 
             hass: HomeAssistant,
             name: str,
-            charger: GoeCharger,
+            charger: Charger,
             update_interval: timedelta,
     ) -> None:
         """Initalize the DataUpdateCoordinator to gather data for specific go-eCharger."""
@@ -39,7 +38,7 @@ class GoeChargerUpdateCoordinator(DataUpdateCoordinator[None]):
             _LOGGER.debug(f"update for charger '{self.name}'..")
 
             data = self.data if self.data else {}
-            fetchedStatus = await self.hass.async_add_executor_job(self.charger.requestStatus)
+            fetchedStatus = await self.hass.async_add_executor_job(self.charger.request_status)
 
             if fetchedStatus.get("car_status", "unknown") != "unknown":
                 self.data = fetchedStatus

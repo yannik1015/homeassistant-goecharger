@@ -26,7 +26,8 @@
                 "data": {
                     "host": "Hostname oder IP-Address im lokalen Netzwerk",
                     "scan_interval": "Abfrageintervall in Sekunden",
-                    "correction_factor": "Korrekturfaktor für ungenaue Spannungsmessung"
+                    "correction_factor": "Korrekturfaktor für ungenaue Spannungsmessung",
+                    "api_level": "API Level des Chargers"
                 }
             }
         },

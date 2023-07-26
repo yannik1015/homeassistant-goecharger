@@ -26,7 +26,8 @@
                 "data": {
                     "host": "Hostname or IP-Address in the local network",
                     "scan_interval": "Pollinterval in seconds",
-                    "correction_factor": "correction Factor for incorrect Voltage measurement"
+                    "correction_factor": "correction Factor for incorrect Voltage measurement",
+                    "api_level": "API Level of the chrager"
                 }
             }
         },

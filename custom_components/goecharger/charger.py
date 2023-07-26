@@ -17,7 +17,7 @@ class Charger:
         elif api_level == "2":
             self.goecharger = GoeChargerV2(host)
         else:
-            raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
+            raise InvalidAPILevelError(f"Invalid API level {api_level}. Allowed values are 1 and 2.")
 
     def request_status(self):
         if self.api_level == "1":
@@ -26,7 +26,7 @@ class Charger:
             # TODO: Check the return format with v1
             return self.goecharger.get_status(status_type=GoeChargerV2.STATUS_FULL)
         else:
-            raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
+            raise InvalidAPILevelError(f"Invalid API level {self.api_level}. Allowed values are 1 and 2.")
     
     def set_tmp_max_current(self, maxCurrent):
         if self.api_level == "1":
@@ -35,7 +35,7 @@ class Charger:
             # TODO: Check
             return self.goecharger.set_ampere(maxCurrent)
         else:
-            raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
+            raise InvalidAPILevelError(f"Invalid API level {self.api_level}. Allowed values are 1 and 2.")
     
     def set_absolute_max_current(self, absoluteMaxCurrent):
         if self.api_level == "1":
@@ -45,7 +45,7 @@ class Charger:
             # return self.goecharger.set_absolute_max_current(absoluteMaxCurrent)
             return self.goecharger.set_key("ama", absoluteMaxCurrent)
         else:
-            raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
+            raise InvalidAPILevelError(f"Invalid API level {self.api_level}. Allowed values are 1 and 2.")
     
     def set_cable_lock_mode(self, cableLockModeEnum):
         if self.api_level == "1":
@@ -55,7 +55,7 @@ class Charger:
             # return self.goecharger.set_cable_lock_mode(cableLockModeEnum)
             return self.goecharger.set_key("ust", cableLockModeEnum)
         else:
-            raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
+            raise InvalidAPILevelError(f"Invalid API level {self.api_level}. Allowed values are 1 and 2.")
     
     def set_charge_limit(self, chargeLimit):
         if self.api_level == "1":
@@ -68,7 +68,7 @@ class Charger:
             # return self.goecharger.set_charge_limit(chargeLimit)
             return self.goecharger.set_key("dwo", chargeLimit)
         else:
-            raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
+            raise InvalidAPILevelError(f"Invalid API level {self.api_level}. Allowed values are 1 and 2.")
     
     def set_phase_mode(self, phaseModeEnum):
         if self.api_level != "1":
@@ -87,7 +87,7 @@ class Charger:
             else:
                 return self.goecharger.set_charging_mode(GoeChargerV2.SettableValueEnum.ChargingMode.off)
         else:
-            raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
+            raise InvalidAPILevelError(f"Invalid API level {self.api_level}. Allowed values are 1 and 2.")
     
     class CableLockMode(Enum):
         UNLOCKCARFIRST = 0
