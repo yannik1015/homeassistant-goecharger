@@ -10,6 +10,7 @@ from homeassistant.const import (
 
 from homeassistant import core, config_entries
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_platform
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.sensor import (
@@ -187,7 +188,7 @@ async def async_setup_entry(
 
     _LOGGER.debug(f"charger name: '{chargerName}'")
     _LOGGER.debug(f"config: '{config}'")
-    
+
     async_add_entities(_create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator))
 
 
@@ -227,3 +228,4 @@ class GoeChargerSensor(GoeChargerEntity, SensorEntity):
     def unique_id(self):
         """Return the unique_id of the sensor."""
         return f"sensor.{DOMAIN}.{self.device_name}_{self._attribute}"
+    
