@@ -164,14 +164,12 @@ async def async_setup_entry(
                 )
             )
 
-        if api_level == "1":
-            for sensor in _sensorsv1:
-                _add_sensor(sensor)
-        elif api_level == "2":
+        for sensor in _sensorsv1:
+            _add_sensor(sensor)
+
+        if api_level == "2":
             for sensor in _sensorsv2:
                 _add_sensor(sensor)
-        else:
-            raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
             
         return entities
     
@@ -211,14 +209,14 @@ class GoeChargerSensor(GoeChargerEntity, SensorEntity):
         """Return the state of the sensor."""
 
         # # TODO: Check if this try/exept is needed
-        # try:
-        if (self._attribute == 'energy_total_corrected'):
-            return self.coordinator.data['energy_total'] * self.correctionFactor
-        if (self._attribute == 'current_session_charged_energy_corrected'):
-            return self.coordinator.data['current_session_charged_energy'] * self.correctionFactor   
-        return self.coordinator.data[self._attribute]
-        # except KeyError:
-        #     return None
+        try:
+            if (self._attribute == 'energy_total_corrected'):
+                return self.coordinator.data['energy_total'] * self.correctionFactor
+            if (self._attribute == 'current_session_charged_energy_corrected'):
+                return self.coordinator.data['current_session_charged_energy'] * self.correctionFactor   
+            return self.coordinator.data[self._attribute]
+        except KeyError:
+            return None
 
     @property
     def unit_of_measurement(self):

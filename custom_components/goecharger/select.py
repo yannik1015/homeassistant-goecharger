@@ -97,10 +97,12 @@ class GoeChargerSelect(GoeChargerEntity, SelectEntity):
             ret_val = await self.hass.async_add_executor_job(self.goeCharger.set_cable_lock_mode, CableLockMode(int(option)))
             _LOGGER.debug(f"set_cable_lock_mode returned {ret_val}")
         elif (self._attribute == "phase_mode"):
-            await self.hass.async_add_executor_job(self.goeCharger.set_phase_mode, PhaseModeEnum(int(option)))
+            ret_val = await self.hass.async_add_executor_job(self.goeCharger.set_phase_mode, PhaseModeEnum(int(option)))
+            _LOGGER.debug(f'set_phase_mode returned {ret_val}')
 
-        self._attr_current_option = option
-        self.async_write_ha_state()
+        if ret_val != None:
+            self._attr_current_option = option
+            self.async_write_ha_state()
 
     @property
     def unique_id(self):

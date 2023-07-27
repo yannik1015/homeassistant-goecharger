@@ -40,7 +40,7 @@ class GoeChargerUpdateCoordinator(DataUpdateCoordinator[None]):
             data = self.data if self.data else {}
             fetchedStatus = await self.hass.async_add_executor_job(self.charger.request_status)
 
-            if fetchedStatus.get("car_status", "unknown") != "unknown":
+            if fetchedStatus is not None and fetchedStatus.get("car_status", "unknown") != "unknown":
                 self.data = fetchedStatus
             else:
                 _LOGGER.error(f"Unable to fetch state for charger {self.name}")

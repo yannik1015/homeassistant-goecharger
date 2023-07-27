@@ -54,11 +54,6 @@ class GoeChargerSwitch(GoeChargerEntity, SwitchEntity):
         # TODO: Check if this is needed
         # self._attr_unique_id = f"{self._chargername}_allow_charging"
 
-    # @property
-    # def icon(self) -> str:
-    #     """Return the icon."""
-    #     return "mdi:ev-station"
-
     # TODO: Fix state changing to on/off even though no connection can be made
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""

@@ -39,9 +39,7 @@ class GoeChargerEntity(CoordinatorEntity[GoeChargerUpdateCoordinator]):
         """Initialize the switch."""
         super().__init__(coordinator)
         self.goeCharger: GoeCharger = device
-        # self._attr_unique_id = attr_unique_id
         self.device_name = device_name
-        # self._name = name
         self._name = f'{device_name} {name}'
 
     @property
@@ -52,7 +50,7 @@ class GoeChargerEntity(CoordinatorEntity[GoeChargerUpdateCoordinator]):
             identifiers={(DOMAIN, str(self.device_name))},
             manufacturer="go-e",
             model="HOME",
-            name=self._name,
+            name=self.device_name,
         )
     
     @property

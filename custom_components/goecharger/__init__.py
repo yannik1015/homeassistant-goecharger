@@ -89,7 +89,8 @@ async def update_listener(hass, config):
     # TODO: Fix this thing never actually returning
     await hass.data[DOMAIN][config.entry_id].async_refresh()
 
-    await hass.config_entries.async_forward_entry_setups(config, PLATFORMS)
+    # TODO: Fix API-level change not upating the entities
+    # await hass.config_entries.async_forward_entry_setups(config, PLATFORMS)
     # hass.async_create_task(
     #     hass.config_entries.async_forward_entry_setup(config, "sensor")
     # )
