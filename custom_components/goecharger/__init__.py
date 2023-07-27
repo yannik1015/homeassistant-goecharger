@@ -86,14 +86,16 @@ async def update_listener(hass, config):
     goeCharger = Charger(config.data[CONF_HOST], config.data[CONF_API_LEVEL])
     hass.data[DOMAIN]["api"][name] = goeCharger
 
+    # TODO: Fix this thing never actually returning
     await hass.data[DOMAIN][config.entry_id].async_refresh()
 
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(config, "sensor")
-    )
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(config, "switch")
-    )
+    await hass.config_entries.async_forward_entry_setups(config, PLATFORMS)
+    # hass.async_create_task(
+    #     hass.config_entries.async_forward_entry_setup(config, "sensor")
+    # )
+    # hass.async_create_task(
+    #     hass.config_entries.async_forward_entry_setup(config, "switch")
+    # )
 
     return True
 
@@ -264,103 +266,103 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
 
         await hass.data[DOMAIN]["coordinator"].async_refresh()
 
-    async def async_handle_set_cable_lock_mode(call):
-        """Handle the service call to set the cable lock mode."""
-        chargerNameInput = call.data.get(CHARGER_NAME_ATTR, '')
-        cableLockModeInput = call.data.get(SET_CABLE_LOCK_MODE_ATTR, 0)
-        if isinstance(cableLockModeInput, str):
-            if cableLockModeInput.isnumeric():
-                cableLockMode = int(cableLockModeInput)
-            elif valid_entity_id(cableLockModeInput):
-                cableLockMode = int(hass.states.get(cableLockModeInput).state)
-            else:
-                _LOGGER.error(
-                    "No valid value for '%s': %s",
-                    SET_CABLE_LOCK_MODE_ATTR,
-                    cableLockModeInput,
-                )
-                return
-        else:
-            cableLockMode = cableLockModeInput
+    # async def async_handle_set_cable_lock_mode(call):
+    #     """Handle the service call to set the cable lock mode."""
+    #     chargerNameInput = call.data.get(CHARGER_NAME_ATTR, '')
+    #     cableLockModeInput = call.data.get(SET_CABLE_LOCK_MODE_ATTR, 0)
+    #     if isinstance(cableLockModeInput, str):
+    #         if cableLockModeInput.isnumeric():
+    #             cableLockMode = int(cableLockModeInput)
+    #         elif valid_entity_id(cableLockModeInput):
+    #             cableLockMode = int(hass.states.get(cableLockModeInput).state)
+    #         else:
+    #             _LOGGER.error(
+    #                 "No valid value for '%s': %s",
+    #                 SET_CABLE_LOCK_MODE_ATTR,
+    #                 cableLockModeInput,
+    #             )
+    #             return
+    #     else:
+    #         cableLockMode = cableLockModeInput
 
-        cableLockModeEnum = Charger.CableLockMode.UNLOCKCARFIRST
-        if cableLockModeInput == 1:
-            cableLockModeEnum = Charger.CableLockMode.AUTOMATIC
-        if cableLockMode >= 2:
-            cableLockModeEnum = Charger.CableLockMode.LOCKED
+    #     cableLockModeEnum = Charger.CableLockMode.UNLOCKCARFIRST
+    #     if cableLockModeInput == 1:
+    #         cableLockModeEnum = Charger.CableLockMode.AUTOMATIC
+    #     if cableLockMode >= 2:
+    #         cableLockModeEnum = Charger.CableLockMode.LOCKED
 
-        if len(chargerNameInput) > 0:
-            _LOGGER.debug(f"set set_cable_lock_mode for charger '{chargerNameInput}' to {cableLockModeEnum}")
-            try:
-                await hass.async_add_executor_job(
-                    # TODO: Check
-                    hass.data[DOMAIN]["api"][chargerNameInput].set_cable_lock_mode, cableLockModeEnum
-                )
-            except KeyError:
-                _LOGGER.error(f"Charger with name '{chargerName}' not found!")
+    #     if len(chargerNameInput) > 0:
+    #         _LOGGER.debug(f"set set_cable_lock_mode for charger '{chargerNameInput}' to {cableLockModeEnum}")
+    #         try:
+    #             await hass.async_add_executor_job(
+    #                 # TODO: Check
+    #                 hass.data[DOMAIN]["api"][chargerNameInput].set_cable_lock_mode, cableLockModeEnum
+    #             )
+    #         except KeyError:
+    #             _LOGGER.error(f"Charger with name '{chargerName}' not found!")
 
-        else:
-            for charger in hass.data[DOMAIN]["api"].keys():
-                try:
-                    _LOGGER.debug(f"set set_cable_lock_mode for charger '{charger}' to {cableLockModeEnum}")
-                    # TODO: Check
-                    await hass.async_add_executor_job(
-                        hass.data[DOMAIN]["api"][charger].set_cable_lock_mode, cableLockModeEnum
-                    )
-                except KeyError:
-                    _LOGGER.error(f"Charger with name '{chargerName}' not found!")
+    #     else:
+    #         for charger in hass.data[DOMAIN]["api"].keys():
+    #             try:
+    #                 _LOGGER.debug(f"set set_cable_lock_mode for charger '{charger}' to {cableLockModeEnum}")
+    #                 # TODO: Check
+    #                 await hass.async_add_executor_job(
+    #                     hass.data[DOMAIN]["api"][charger].set_cable_lock_mode, cableLockModeEnum
+    #                 )
+    #             except KeyError:
+    #                 _LOGGER.error(f"Charger with name '{chargerName}' not found!")
 
-        await hass.data[DOMAIN]["coordinator"].async_refresh()
+    #     await hass.data[DOMAIN]["coordinator"].async_refresh()
 
-    async def async_handle_set_phase_mode(call):
-        """Handle the service to set the phase mode."""
-        # TODO: Check
+    # async def async_handle_set_phase_mode(call):
+    #     """Handle the service to set the phase mode."""
+    #     # TODO: Check
 
-        chargerNameInput = call.data.get(CHARGER_NAME_ATTR, '')
-        phaseModeInput = call.data.get(SET_PHASE_MODE_ATTR, 0)
-        if isinstance(phaseModeInput, str):
-            if phaseModeInput.isnumeric():
-                phaseMode = int(phaseModeInput)
-            elif valid_entity_id(phaseModeInput):
-                phaseMode = int(hass.states.get(phaseModeInput).state)
-            else:
-                _LOGGER.error(
-                    "No valid value for '%s': %s",
-                    SET_PHASE_MODE_ATTR,
-                    phaseModeInput,
-                )
-                return
-        else:
-            phaseMode = phaseModeInput
+    #     chargerNameInput = call.data.get(CHARGER_NAME_ATTR, '')
+    #     phaseModeInput = call.data.get(SET_PHASE_MODE_ATTR, 0)
+    #     if isinstance(phaseModeInput, str):
+    #         if phaseModeInput.isnumeric():
+    #             phaseMode = int(phaseModeInput)
+    #         elif valid_entity_id(phaseModeInput):
+    #             phaseMode = int(hass.states.get(phaseModeInput).state)
+    #         else:
+    #             _LOGGER.error(
+    #                 "No valid value for '%s': %s",
+    #                 SET_PHASE_MODE_ATTR,
+    #                 phaseModeInput,
+    #             )
+    #             return
+    #     else:
+    #         phaseMode = phaseModeInput
 
-        phaseModeEnum = Charger.PhaseModeEnum.three
-        if phaseModeInput == 1:
-            phaseModeEnum = Charger.PhaseModeEnum.one
-        if phaseMode >= 2:
-            phaseModeEnum = Charger.PhaseModeEnum.three
+    #     phaseModeEnum = Charger.PhaseModeEnum.three
+    #     if phaseModeInput == 1:
+    #         phaseModeEnum = Charger.PhaseModeEnum.one
+    #     if phaseMode >= 2:
+    #         phaseModeEnum = Charger.PhaseModeEnum.three
 
-        if len(chargerNameInput) > 0:
-            _LOGGER.debug(f"set set_phase_mode for charger '{chargerNameInput}' to {phaseModeEnum}")
-            try:
-                await hass.async_add_executor_job(
-                    # TODO: Check
-                    hass.data[DOMAIN]["api"][chargerNameInput].set_phase_mode, phaseModeEnum
-                )
-            except KeyError:
-                _LOGGER.error(f"Charger with name '{chargerName}' not found!")
+    #     if len(chargerNameInput) > 0:
+    #         _LOGGER.debug(f"set set_phase_mode for charger '{chargerNameInput}' to {phaseModeEnum}")
+    #         try:
+    #             await hass.async_add_executor_job(
+    #                 # TODO: Check
+    #                 hass.data[DOMAIN]["api"][chargerNameInput].set_phase_mode, phaseModeEnum
+    #             )
+    #         except KeyError:
+    #             _LOGGER.error(f"Charger with name '{chargerName}' not found!")
 
-        else:
-            for charger in hass.data[DOMAIN]["api"].keys():
-                try:
-                    _LOGGER.debug(f"set set_phase_mode for charger '{charger}' to {phaseModeEnum}")
-                    # TODO: Check
-                    await hass.async_add_executor_job(
-                        hass.data[DOMAIN]["api"][charger].set_phase_mode, phaseModeEnum
-                    )
-                except KeyError:
-                    _LOGGER.error(f"Charger with name '{chargerName}' not found!")
+    #     else:
+    #         for charger in hass.data[DOMAIN]["api"].keys():
+    #             try:
+    #                 _LOGGER.debug(f"set set_phase_mode for charger '{charger}' to {phaseModeEnum}")
+    #                 # TODO: Check
+    #                 await hass.async_add_executor_job(
+    #                     hass.data[DOMAIN]["api"][charger].set_phase_mode, phaseModeEnum
+    #                 )
+    #             except KeyError:
+    #                 _LOGGER.error(f"Charger with name '{chargerName}' not found!")
 
-        await hass.data[DOMAIN]["coordinator"].async_refresh()
+    #     await hass.data[DOMAIN]["coordinator"].async_refresh()
 
     async def async_handle_set_charge_limit(call):
         """Handle the service call to set charge limit."""
@@ -412,18 +414,11 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
         DOMAIN, "set_absolute_max_current", async_handle_set_absolute_max_current
     )
 
-    if api_level == 1:
-        hass.services.async_register(DOMAIN, "set_cable_lock_mode", async_handle_set_cable_lock_mode)
-    elif api_level == 2:
-        hass.services.async_register(DOMAIN, "set_phase_mode", async_handle_set_phase_mode)
+    # if api_level == 1:
+    #     hass.services.async_register(DOMAIN, "set_cable_lock_mode", async_handle_set_cable_lock_mode)
+    # elif api_level == 2:
+    #     hass.services.async_register(DOMAIN, "set_phase_mode", async_handle_set_phase_mode)
 
     hass.services.async_register(DOMAIN, "set_charge_limit", async_handle_set_charge_limit)
-
-    # hass.async_create_task(async_load_platform(
-    #     hass, "sensor", DOMAIN, {CONF_CHARGERS: chargers, CHARGER_API: chargerApi}, config)
-    # )
-    # hass.async_create_task(async_load_platform(
-    #     hass, "switch", DOMAIN, {CONF_CHARGERS: chargers, CHARGER_API: chargerApi}, config)
-    # )
 
     return True

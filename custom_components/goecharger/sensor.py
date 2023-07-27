@@ -55,7 +55,6 @@ _sensorUnits = {
     'i_l3': {'unit': AMPERE, 'name': 'Current L3'},
     'charger_max_current': {'unit': AMPERE, 'name': 'Charger max current setting'},
     'charger_absolute_max_current': {'unit': AMPERE, 'name': 'Charger absolute max current setting'},
-    'cable_lock_mode': {'unit': '', 'name': 'Cable lock mode'},
     'cable_max_current': {'unit': AMPERE, 'name': 'Cable max current'},
     'unlocked_by_card': {'unit': CARD_ID, 'name': 'Card used'},
     'lf_l1': {'unit': PERCENT, 'name': 'Power factor L1'},
@@ -63,7 +62,6 @@ _sensorUnits = {
     'lf_l3': {'unit': PERCENT, 'name': 'Power factor L3'},
     'lf_n': {'unit': PERCENT, 'name': 'Loadfactor N'},
     'car_status': {'unit': '', 'name': 'Status'},
-    'phase_mode': {'unit': '', 'name': 'Phase mode'}
 }
 
 _sensorStateClass = {
@@ -87,7 +85,6 @@ _sensorsv1 = [
     'charger_err',
     'charger_access',
     'stop_mode',
-    'cable_lock_mode',
     'cable_max_current',
     'pre_contactor_l1',
     'pre_contactor_l2',
@@ -136,7 +133,6 @@ _sensorsv1 = [
 
 # TODO: Add Sensor for APIv2
 _sensorsv2 = [
-    'phase_mode',
 ]
 
 async def async_setup_entry(
@@ -149,7 +145,7 @@ async def async_setup_entry(
     def _create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator):
         entities = []
 
-        def add_sensor(sensor):
+        def _add_sensor(sensor):
             _LOGGER.debug(f"adding Sensor: {sensor} for charger {chargerName}")
             sensorUnit = _sensorUnits.get(sensor).get('unit') if _sensorUnits.get(sensor) else ''
             sensorName = _sensorUnits.get(sensor).get('name') if _sensorUnits.get(sensor) else sensor
@@ -170,10 +166,10 @@ async def async_setup_entry(
 
         if api_level == "1":
             for sensor in _sensorsv1:
-                add_sensor(sensor)
+                _add_sensor(sensor)
         elif api_level == "2":
             for sensor in _sensorsv2:
-                add_sensor(sensor)
+                _add_sensor(sensor)
         else:
             raise InvalidAPILevelError("Invalid API level. Allowed values are 1 and 2.")
             

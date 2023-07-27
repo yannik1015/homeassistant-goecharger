@@ -3,12 +3,11 @@ import logging
 
 from requests import ConnectTimeout
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import CONF_HOST
 from homeassistant import core, config_entries
 
 from .coordinator import GoeChargerUpdateCoordinator
 from .entity import GoeChargerEntity
-from .const import DOMAIN, CONF_CHARGERS, CONF_NAME, CHARGER_API, CONF_API_LEVEL
+from .const import DOMAIN, CONF_NAME
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,12 +62,12 @@ class GoeChargerSwitch(GoeChargerEntity, SwitchEntity):
     # TODO: Fix state changing to on/off even though no connection can be made
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        await self.hass.async_add_executor_job(self._goeCharger.set_allow_charging, True)
+        await self.hass.async_add_executor_job(self.goeCharger.set_allow_charging, True)
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        await self.hass.async_add_executor_job(self._goeCharger.set_allow_charging, False)
+        await self.hass.async_add_executor_job(self.goeCharger.set_allow_charging, False)
         await self.coordinator.async_request_refresh()
 
     @property
