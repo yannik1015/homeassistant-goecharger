@@ -71,9 +71,9 @@ async def async_setup_entry(hass, config):
     update_interval = timedelta(config.data[CONF_SCAN_INTERVAL])
     hass.data[DOMAIN]["api"][name] = charger
 
+    # TODO: Check if this works
     hass.data[DOMAIN][config.entry_id] = GoeChargerUpdateCoordinator(hass, name, charger, update_interval)
-
-    retVal = await hass.data[DOMAIN][config.entry_id].async_refresh()
+    retVal = await hass.data[DOMAIN][config.entry_id].async_config_entry_first_refresh()
 
     _LOGGER.debug(f"Setup result: {retVal}")
 

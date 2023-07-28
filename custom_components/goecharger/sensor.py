@@ -9,7 +9,7 @@ from homeassistant.const import (
 )
 
 from homeassistant import core, config_entries
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -176,6 +176,8 @@ async def async_setup_entry(
     
     config = config_entry.as_dict()["data"]
     coordinator: GoeChargerUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    await coordinator.async_config_entry_first_refresh()
+
     chargerName = config[CONF_NAME]
     api_level = config[CONF_API_LEVEL]
 
@@ -204,6 +206,13 @@ class GoeChargerSensor(GoeChargerEntity, SensorEntity):
         self._attr_state_class = stateClass
         self._attr_device_class = deviceClass
         self.correctionFactor = correctionFactor
+
+    # @callback
+    # async def _handle_coordinator_update(self) -> None:
+    #     """Handle updated data from the coordinator."""
+        
+    #     self._value = self.coordinator.data[self._attribute]["state"]
+    #     self.async_write_ha_state()
 
     @property
     def state(self):

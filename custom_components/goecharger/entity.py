@@ -58,9 +58,8 @@ class GoeChargerEntity(CoordinatorEntity[GoeChargerUpdateCoordinator]):
         """Return the name of the entity."""
         return self._name
     
-    # @callback
-    # def _handle_coordinator_update(self) -> None:
-    #     """Handle updated data from the coordinator."""
-    #     # TODO: Implement here or in the sensor/switch class
-    #     # self._attr_is_on = self.coordinator.data[self.idx]["state"]
-    #     self.async_write_ha_state()
+    @callback
+    async def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._value = self.coordinator.data[self._attribute]["state"]
+        self.async_write_ha_state()

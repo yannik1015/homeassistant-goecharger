@@ -9,7 +9,7 @@ from .charger import Charger
 
 _LOGGER = logging.getLogger(__name__)
 
-class GoeChargerUpdateCoordinator(DataUpdateCoordinator[None]):
+class GoeChargerUpdateCoordinator(DataUpdateCoordinator):
     """DataUpdateCoordinator to gather data for a specific go-eCharger."""
 
     def __init__(
@@ -38,10 +38,10 @@ class GoeChargerUpdateCoordinator(DataUpdateCoordinator[None]):
             _LOGGER.debug(f"update for charger '{self.name}'..")
 
             data = self.data if self.data else {}
-            fetchedStatus = await self.hass.async_add_executor_job(self.charger.request_status)
+            fetched_status = await self.hass.async_add_executor_job(self.charger.request_status)
 
-            if fetchedStatus is not None and fetchedStatus.get("car_status", "unknown") != "unknown":
-                self.data = fetchedStatus
+            if fetched_status is not None and fetched_status.get("car_status", "unknown") != "unknown":
+                self.data = fetched_status
             else:
                 _LOGGER.error(f"Unable to fetch state for charger {self.name}")
             
