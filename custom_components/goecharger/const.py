@@ -8,4 +8,5 @@ CONF_CHARGERS: Final = "chargers"
 CONF_CORRECTION_FACTOR: Final = "correction_factor"
 CHARGER_API: Final  = "charger_api"
 CONF_API_LEVEL: Final = "api_level"
-PLATFORMS: Final = [Platform.SENSOR, Platform.SWITCH, Platform.SELECT]
+# PLATFORMS: Final = [Platform.SENSOR, Platform.SWITCH, Platform.SELECT]
+PLATFORMS: Final = [Platform.SENSOR]

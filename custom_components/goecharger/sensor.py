@@ -143,7 +143,7 @@ async def async_setup_entry(
 ):
     _LOGGER.debug("Setup sensors...")
     
-    def _create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator):
+    def _create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator, charger):
         entities = []
 
         def _add_sensor(sensor):
@@ -161,7 +161,8 @@ async def async_setup_entry(
                     sensorUnit, 
                     sensorStateClass, 
                     sensorDeviceClass, 
-                    correctionFactor
+                    correctionFactor,
+                    charger
                 )
             )
 
@@ -191,28 +192,36 @@ async def async_setup_entry(
     _LOGGER.debug(f"charger name: '{chargerName}'")
     _LOGGER.debug(f"config: '{config}'")
 
-    async_add_entities(_create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator))
+    async_add_entities(_create_sensors_for_charger(chargerName, hass, correctionFactor, coordinator, None))
 
 
-class GoeChargerSensor(GoeChargerEntity, SensorEntity):
+class GoeChargerSensor(CoordinatorEntity, SensorEntity):
     def __init__(
-            self, coordinator, device_name, name, attribute, unit, stateClass, deviceClass, correctionFactor
+            self, coordinator, device_name, name, attribute, unit, stateClass, deviceClass, correctionFactor, charger
         ):
         """Initialize the go-eCharger sensor."""
 
-        super().__init__(coordinator.charger, coordinator, device_name, name)
+        # super().__init__(coordinator.charger, coordinator, device_name, name)
+        super().__init__(coordinator)
+
+        self.attrs = {}
+
         self._attribute = attribute
         self._unit = unit
         self._attr_state_class = stateClass
         self._attr_device_class = deviceClass
+
+        self.goeCharger = charger
+        self.device_name = device_name
+        self._name = f"{device_name} {name}"
         self.correctionFactor = correctionFactor
 
-    # @callback
-    # async def _handle_coordinator_update(self) -> None:
-    #     """Handle updated data from the coordinator."""
+    @callback
+    async def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
         
-    #     self._value = self.coordinator.data[self._attribute]["state"]
-    #     self.async_write_ha_state()
+        self._value = self.coordinator.data[self._attribute]["state"]
+        self.async_write_ha_state()
 
     @property
     def state(self):

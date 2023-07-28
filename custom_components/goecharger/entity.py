@@ -26,7 +26,7 @@ def async_refresh_after(
 
     return _async_wrap
 
-class GoeChargerEntity(CoordinatorEntity[GoeChargerUpdateCoordinator]):
+class GoeChargerEntity(CoordinatorEntity):
     """Common base class for all coordinatd go-eCharger entities."""
 
     def __init__(

@@ -2,6 +2,8 @@ from enum import Enum
 from goecharger import GoeCharger as GoeChargerV1
 from goecharger_api_lite import GoeCharger as GoeChargerV2
 
+from homeassistant.core import callback
+
 import logging
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,10 +49,11 @@ class PhaseModeEnum(Enum):
 # TODO: Check the return values of the functions here
 
 class Charger:
-    def __init__(self, host, api_level):
+    def __init__(self, host, api_level, hass):
         _LOGGER.debug(f"Creating Charger at {host} with API {api_level}")
         self.host = host
         self.api_level = api_level
+        self.hass = hass
         
         if api_level == "1":
             self.goecharger = GoeChargerV1(host)
@@ -58,15 +61,21 @@ class Charger:
             self.goecharger = GoeChargerV2(host)
         else:
             raise InvalidAPILevelError(f"Invalid API level {api_level}. Allowed values are 1 and 2.")
-
-    def request_status(self):
+    
+    def _request_status(self):
+        """Internal call"""
         if self.api_level == "1":
             return self.goecharger.requestStatus()
         elif self.api_level == "2":
             # TODO: Check the return format with v1
             return self.goecharger.get_status(status_type=GoeChargerV2.STATUS_FULL)
+            # return self.hass.async_create_task(self.goecharger.get_status(status_type=GoeChargerV2.STATUS_FULL))
         else:
             raise InvalidAPILevelError(f"Invalid API level {self.api_level}. Allowed values are 1 and 2.")
+        
+    async def request_status(self):
+        retVal = await self.hass.async_create_task(self._request_status)
+        return retVal
     
     def set_tmp_max_current(self, maxCurrent):
         if self.api_level == "1":

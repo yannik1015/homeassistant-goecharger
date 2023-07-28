@@ -67,18 +67,27 @@ async def async_setup_entry(hass, config):
     config.async_on_unload(config.add_update_listener(update_listener))
 
     name = config.data[CONF_NAME]
-    charger = Charger(config.data[CONF_HOST], config.data[CONF_API_LEVEL])
+    charger = Charger(config.data[CONF_HOST], config.data[CONF_API_LEVEL], hass)
     update_interval = timedelta(config.data[CONF_SCAN_INTERVAL])
     hass.data[DOMAIN]["api"][name] = charger
 
     # TODO: Check if this works
-    hass.data[DOMAIN][config.entry_id] = GoeChargerUpdateCoordinator(hass, name, charger, update_interval)
-    retVal = await hass.data[DOMAIN][config.entry_id].async_config_entry_first_refresh()
-
+    # coordinator = GoeChargerUpdateCoordinator(hass, name, charger, update_interval)
+    coordinator = DataUpdateCoordinator(
+        hass,
+        _LOGGER,
+        name=f"{DOMAIN}-{name}",
+        update_method=charger.request_status,
+        update_interval=update_interval,
+    )
+    # retVal = await coordinator.async_config_entry_first_refresh()
+    retVal = await coordinator.async_refresh()
     _LOGGER.debug(f"Setup result: {retVal}")
+    
+    hass.data[DOMAIN][config.entry_id] = coordinator
 
+    # TODO: Check if this makes more sense
     await hass.config_entries.async_forward_entry_setups(config, PLATFORMS)
-
     await async_setup_services(hass)
     
     return True
@@ -88,7 +97,7 @@ async def update_listener(hass, config):
     _LOGGER.debug("update_listener")
 
     name = config.data[CONF_NAME]
-    goeCharger = Charger(config.data[CONF_HOST], config.data[CONF_API_LEVEL])
+    goeCharger = Charger(config.data[CONF_HOST], config.data[CONF_API_LEVEL], hass)
     hass.data[DOMAIN]["api"][name] = goeCharger
 
     # TODO: Fix this thing never actually returning
@@ -159,7 +168,7 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
 
         if host:
             if not serial:
-                goeCharger = Charger(host, api_level)
+                goeCharger = Charger(host, api_level, hass)
                 status = goeCharger.request_status()
                 serial = status["serial_number"]
             chargers.append([{CONF_NAME: serial, CONF_HOST: host, CONF_CORRECTION_FACTOR: correctionFactor,
@@ -173,7 +182,7 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
             api_level = charger[0][CONF_API_LEVEL]
             _LOGGER.debug(f"charger: '{chargerName}' host: '{host}' ")
 
-            goeCharger = Charger(host, api_level)
+            goeCharger = Charger(host, api_level, hass)
             chargerApi[chargerName] = goeCharger
 
     hass.data[DOMAIN]["api"] = chargerApi
